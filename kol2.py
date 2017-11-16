@@ -19,7 +19,7 @@ import random
 
 class StudentOrganizer:
 	def __init__(self, list_of_students):
-		self.students = []
+		self.students = list_of_students
 	def get_avg_class_score(self, class_name):
 		avg = 0.0
 		i = 0
@@ -34,7 +34,7 @@ class StudentOrganizer:
 		for student in self.students:
 			avg = avg + sum(student.scores)			
 			i = i+ 1
-		return avg
+		return float(avg/i)
 
 	
 class Student:
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 		student.add_score( random.randint(2,6) )
 		student.set_if_present( "11.11.2017",  random.randint(0,2) )
 	student_organizer = StudentOrganizer(my_students_list)
-	print (student_organizer.get_total_avg_score() )
+	print ("Student total average" , student_organizer.get_total_avg_score() )
 	
 
 
