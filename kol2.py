@@ -14,49 +14,51 @@
 # data in text files (YAML, JSON).
 # If you have even more courage, try implementing user interface.
 import sys
-import math
-import random
 
-class StudentOrganizer:
-	def __init__(self, list_of_students):
-		self.students = list_of_students
-	def get_avg_class_score(self, class_name):
-		avg = 0.0
-		i = 0
-		for student in self.students:
-			if student.class_name == class_name:
-				avg = avg + student.score
-				i = i+1
-		return float(avg/i)
-	def get_total_avg_score(self):
-		avg = 0.0
-		i = 0
-		for student in self.students:
-			avg = avg + sum(student.scores)			
-			i = i+ 1
-		return float(avg/i)
+import json
+from pprint import pprint
 
+def add_student(students,name, age):
+	students.append( { "Name" : name, "Age" : age, "Classes" : {} } )
+
+def add_class(student, class_name):
+	student['Classes'][class_name] = []
+
+def get_student_class_attendance( student_classes, class_name):
+	a = sum( [ class_lesson['Present'] for class_lesson in student_classes[class_name] ] )
+	return 1.0 *a / ( 1.0* len(student_classes[class_name]))
+def get_student_total_attendance(student):
+	 return sum( get_student_class_attendance(student['Classes'], class_name) for class_name in student['Classes'] )*1.0 / (1.0 *len(student['Classes']) ) * 100.0
+
+def get_avg_class_score( students, class_name):
+	return sum( get_student_class_avg_score( student['Classes'], class_name) for student in students) / (1.0*len(students))
+
+def get_student_class_avg_score( student_classes, class_name):
+	a = sum( [class_lesson['Score'] for class_lesson in student_classes[class_name] ] )
+	return  float(  a /len(student_classes[class_name])*1.0 )
 	
-class Student:
-	def __init__(self,name, surname, class_name):
-		self.name = name
-		self.surname = surname
-		self.class_name = class_name
-		self.scores = []
-		self.attendance = { }
-	def add_score(self, new_score):
-		self.scores.append(new_score)
-	def set_if_present(self, date, is_present):
-		self.attendance[date] = is_present
+def get_student_avg_score(student):
+	 return float( sum( get_student_class_avg_score(student['Classes'], class_name) for class_name in student['Classes'] )
+	 /len(student['Classes']) )
+def get_total_avg_score(students):
+	return float( sum( get_student_avg_score(student) for student in students )/len(students) )
 
-
+import io, json
 if __name__ == "__main__":
-	my_students_list = [Student( "Tom" , "A" , "1A"),Student( "Tom" , "w" , "1A"),Student( "Tom" , "A" , "1B"), Student( "Tom" , "e" , "1B"),Student( "Tom" , "D" , "1B"),Student( "Tom" , "C" , "1C"),Student( "Tom" , "b" , "1C")]
-	for student in my_students_list:
-		student.add_score( random.randint(2,6) )
-		student.set_if_present( "11.11.2017",  random.randint(0,2) )
-	student_organizer = StudentOrganizer(my_students_list)
-	print ("Student total average" , student_organizer.get_total_avg_score() )
+	data = None
+	with io.open('students.json', 'r+', encoding='utf-8') as f:
+		data = json.load(f)
+		print("Avgerage score on PITE classes" ,get_avg_class_score( data['students'], "Math") )
+		print("Avgerage score of Jan Kowalski, PITE classes (5): ", get_student_class_avg_score(data['students'][2]['Classes'], "PITE" ))
+		print("Avgerage score of Anna Nowak", get_student_avg_score( data['students'][2] ))
+		print("Avgerage score of all students: ", get_total_avg_score( data['students']) )
+		print("Total student Adam Nowak attendance: ", get_student_total_attendance( data['students'][0]) )
+		add_student(data['students'], "Bron Tan", 33)
+		add_class(data['students'][3], "Math")
+		f.seek(0)
+		f.truncate()
+		f.write(json.dumps(data, ensure_ascii=False))
+		
 	
 
 
